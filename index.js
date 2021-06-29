@@ -3,8 +3,8 @@
 module.exports = {
   name: require('./package').name,
 
-  included(app) {
+  included() {
     this._super.included.apply(this, arguments);
-    app.import('vendor/Blob.js');
+    this.import(`${this.treePaths.vendor}/Blob.js`);
   },
 };
