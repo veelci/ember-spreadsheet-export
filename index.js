@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  name: require('./package').name,
+  name: 'ember-spreadsheet-export',
 
   included() {
     this._super.included.apply(this, arguments);

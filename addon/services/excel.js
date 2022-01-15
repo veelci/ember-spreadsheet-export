@@ -1,6 +1,7 @@
 import Service from '@ember/service';
 import { saveAs } from 'file-saver';
 import XLSX from 'xlsx';
+import { Blob } from 'blob-polyfill';
 import optionize from '../utils/utils';
 
 const defaultConfig = {
@@ -119,7 +120,7 @@ export default class ExcelService extends Service {
     });
 
     let output = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-    
+
     if (options.download) {
       saveAs(output, options.fileName);
     }
