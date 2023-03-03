@@ -1,9 +1,11 @@
 import Service from '@ember/service';
 import { saveAs } from 'file-saver';
 import { Blob } from 'blob-polyfill';
-import optionize from "../utils/utils";
+import optionize from '../utils/utils';
 
 const defaultConfig = {
+  download: true,
+  returnBlob: false,
   fileName: 'export.csv',
   raw: false,
   separator: ',',
@@ -13,14 +15,20 @@ const defaultConfig = {
 
 const needsQuoteRE = /[",\r\n]/;
 
-export default Service.extend({
-  export: function (data, options) {
+export default class CsvService extends Service {
+  export(data, options) {
     options = optionize(options, defaultConfig);
 
     let csv = this.jsonToCsv(data, options);
+    let output = new Blob([csv], { type: 'data:text/csv;charset=utf-8' });
 
-    saveAs(new Blob([csv],{type:"data:text/csv;charset=utf-8"}), options.fileName);
-  },
+    if (options.download) {
+      saveAs(output, options.fileName);
+    }
+    if (options.returnBlob) {
+      return output;
+    }
+  }
 
   jsonToCsv(objArray, options) {
     let array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
@@ -37,7 +45,7 @@ export default Service.extend({
     // add heading row
     let head = array[0];
     for (let i = 0; i < head.length; i++) {
-      value = head[i] + "";
+      value = head[i] + '';
       if (i > 0) {
         line += options.separator;
       }
@@ -61,24 +69,26 @@ export default Service.extend({
             let resolveValue;
             if (value._d instanceof Date) {
               // dealing with encoding issue in IE browsers.
-              resolveValue = (value._d.getMonth() + 1) + '/' + value._d.getDate()  + '/' + value._d.getFullYear();
-            }
-            else {
+              resolveValue =
+                value._d.getMonth() +
+                1 +
+                '/' +
+                value._d.getDate() +
+                '/' +
+                value._d.getFullYear();
+            } else {
               resolveValue = value._d.toString();
             }
 
             line += this.quoteValue(resolveValue, options);
-          }
-          else {
+          } else {
             line += this.quoteValue('', options);
           }
-        }
-        else {
-          value = value + "";
+        } else {
+          value = value + '';
           if (value && value !== 'undefined') {
             line += this.quoteValue(value, options);
-          }
-          else {
+          } else {
             line += this.quoteValue('', options);
           }
         }
@@ -87,10 +97,10 @@ export default Service.extend({
       str += line + '\r\n';
     }
     return str;
-  },
+  }
 
   quoteValue(value, options) {
-    switch(true) {
+    switch (true) {
       case options.raw:
         return value;
       case options.autoQuote:
@@ -100,9 +110,9 @@ export default Service.extend({
         return value;
     }
     return this.doQuoteValue(value);
-  },
+  }
 
   doQuoteValue(value) {
     return '"' + value.replace(/"/g, '""') + '"';
-  },
-});
+  }
+}
